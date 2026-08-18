@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -37,3 +40,14 @@ jobs:
         with:
           name: github-opportunity-radar-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish APK to repository
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/github-opportunity-radar-debug.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add dist/github-opportunity-radar-debug.apk
+          git commit -m "Publish debug APK [skip ci]" || exit 0
+          git push
